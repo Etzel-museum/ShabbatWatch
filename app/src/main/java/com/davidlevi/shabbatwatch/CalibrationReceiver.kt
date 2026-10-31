@@ -5,7 +5,8 @@ import android.content.Context
 import android.content.Intent
 
 /**
- * Receives the watch settings that scripts/install.ps1 discovered, e.g.:
+ * Receives extra watch settings (beyond SystemTweaks' built-in Galaxy list) that
+ * scripts/install.ps1 -Calibrate discovered, e.g.:
  *   am broadcast -a com.davidlevi.shabbatwatch.ADD_TWEAK -n com.davidlevi.shabbatwatch/.CalibrationReceiver
  *      --es label wrist --es table secure --es key some_key --es off 0
  * Protected by android.permission.DUMP, so only adb shell can send it.

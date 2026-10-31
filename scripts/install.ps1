@@ -1,5 +1,6 @@
-# Installs "Shabbat mode" on a Galaxy Watch over Wi-Fi, grants its permissions,
-# and calibrates which watch settings to switch off during Shabbat.
+# Installs "Shabbat mode" on a Galaxy Watch over Wi-Fi and grants its permissions.
+# The app already knows the Galaxy Watch settings it switches off on Shabbat; add
+# -Calibrate only to teach it extra settings (e.g. on a different watch model).
 #
 # On the watch: Settings > About watch > Software > tap "Software version" 7 times,
 # then Settings > Developer options > ADB debugging ON + Wireless debugging ON.
@@ -8,7 +9,7 @@
 #
 #   powershell -ExecutionPolicy Bypass -File install.ps1 -Ip 192.168.1.50 -Port 41234 -PairPort 37000 -Code 123456
 #
-# Already paired before? Leave out -PairPort/-Code. Only re-run calibration: add -CalibrateOnly.
+# Already paired before? Leave out -PairPort/-Code. Calibrate without reinstalling: -CalibrateOnly.
 
 param(
     [Parameter(Mandatory = $true)][string]$Ip,
@@ -16,8 +17,8 @@ param(
     [int]$PairPort = 0,
     [string]$Code = "",
     [string]$Apk = (Join-Path $PSScriptRoot "ShabbatWatch.apk"),
-    [switch]$CalibrateOnly,
-    [switch]$SkipCalibration
+    [switch]$Calibrate,
+    [switch]$CalibrateOnly
 )
 
 # Not "Stop": in Windows PowerShell 5.1 adb's normal stderr chatter would abort the script.
@@ -67,11 +68,15 @@ if (-not $CalibrateOnly) {
     Adb shell dumpsys deviceidle whitelist +$Pkg
 }
 
-if ($SkipCalibration) { Write-Host "Done."; exit 0 }
+if (-not ($Calibrate -or $CalibrateOnly)) {
+    Write-Host "Done. You can now turn Wireless debugging off; the permissions stay."
+    exit 0
+}
 
-# ---- Calibration -------------------------------------------------------------
-# Samsung's setting names differ between watch models and software versions, so
-# instead of guessing we watch which values change while YOU flip each switch.
+# ---- Calibration (optional) --------------------------------------------------
+# For settings the app doesn't know yet: we watch which values change while YOU
+# flip each switch. Samsung Health's own settings are NOT stored where this can
+# see them - on Galaxy watches the app covers those through power saving instead.
 
 function Get-Snapshot {
     $map = @{}
@@ -93,13 +98,7 @@ function Get-Changed($a, $b) {
 $items = @(
     @{ Label = "wrist"; Name = "Raise wrist to wake"; Where = "Settings > Display" },
     @{ Label = "tap"; Name = "Touch screen to wake"; Where = "Settings > Display" },
-    @{ Label = "palm"; Name = "Cover screen to turn off (palm cover)"; Where = "Settings > Display / Advanced features" },
-    @{ Label = "heart"; Name = "Heart rate measuring (continuous -> manual only)"; Where = "Samsung Health app on the watch > Settings" },
-    @{ Label = "stress"; Name = "Stress measuring"; Where = "Samsung Health app on the watch > Settings" },
-    @{ Label = "bp"; Name = "Blood pressure measuring"; Where = "Samsung Health app on the watch > Settings" },
-    @{ Label = "spo2"; Name = "Blood oxygen (SpO2) measuring"; Where = "Samsung Health app on the watch > Settings" },
-    @{ Label = "skin"; Name = "Skin temperature measuring"; Where = "Samsung Health app on the watch > Settings" },
-    @{ Label = "ages"; Name = "AGEs index measuring"; Where = "Samsung Health app on the watch > Settings" }
+    @{ Label = "palm"; Name = "Cover screen to turn off (palm cover)"; Where = "Settings > Display / Advanced features" }
 )
 
 $found = @()
