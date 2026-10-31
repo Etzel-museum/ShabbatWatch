@@ -89,48 +89,75 @@ function Get-Changed($a, $b) {
     return @($keys | Where-Object { $a[$_] -ne $b[$_] })
 }
 
+# Label ids are ASCII (Windows PowerShell 5.1 mangles Hebrew); the app shows them in Hebrew.
 $items = @(
-    @{ Label = "wrist"; Name = "Raise wrist to wake" },
-    @{ Label = "tap"; Name = "Touch screen to wake" },
-    @{ Label = "palm"; Name = "Cover screen to turn off (palm cover)" }
+    @{ Label = "wrist"; Name = "Raise wrist to wake"; Where = "Settings > Display" },
+    @{ Label = "tap"; Name = "Touch screen to wake"; Where = "Settings > Display" },
+    @{ Label = "palm"; Name = "Cover screen to turn off (palm cover)"; Where = "Settings > Display / Advanced features" },
+    @{ Label = "heart"; Name = "Heart rate measuring (continuous -> manual only)"; Where = "Samsung Health app on the watch > Settings" },
+    @{ Label = "stress"; Name = "Stress measuring"; Where = "Samsung Health app on the watch > Settings" },
+    @{ Label = "bp"; Name = "Blood pressure measuring"; Where = "Samsung Health app on the watch > Settings" },
+    @{ Label = "spo2"; Name = "Blood oxygen (SpO2) measuring"; Where = "Samsung Health app on the watch > Settings" },
+    @{ Label = "skin"; Name = "Skin temperature measuring"; Where = "Samsung Health app on the watch > Settings" },
+    @{ Label = "ages"; Name = "AGEs index measuring"; Where = "Samsung Health app on the watch > Settings" }
 )
 
-Adb shell am broadcast -a "$Pkg.CLEAR_TWEAKS" -n $Receiver | Out-Null
-$restore = @()
+$found = @()
+$notFound = @()
 
-Write-Host ""
-Write-Host "CALIBRATION - keep the watch awake (tap it now and then) and use its Settings app."
-Write-Host "Most of these are under Settings > Display (or Settings > Advanced features)."
-foreach ($item in $items) {
+# You flip one switch to its Shabbat value and back; a setting counts only if the
+# same key(s) change both ways, so random background changes are not picked up.
+function Measure-Setting($label, $name, $where) {
     Write-Host ""
-    Write-Host "== $($item.Name) =="
-    $answer = Read-Host "Make sure it is ON on the watch, then press Enter (type 'skip' if the watch has no such setting)"
-    if ($answer -eq "skip") { continue }
+    Write-Host "== $name ==   ($where)" -ForegroundColor Cyan
+    $answer = Read-Host "Set it to its NORMAL (weekday) value, then press Enter  [or type 'skip']"
+    if ($answer -eq "skip") { return }
     $first = Get-Snapshot
     Start-Sleep -Seconds 2
     $before = Get-Snapshot
     $noise = Get-Changed $first $before
-    Read-Host "Now turn it OFF on the watch, then press Enter" | Out-Null
+    Read-Host "Now set it to its SHABBAT value (off / manual), then press Enter" | Out-Null
     $after = Get-Snapshot
     $changed = @(Get-Changed $before $after | Where-Object { $noise -notcontains $_ -and $after.ContainsKey($_) })
+    Read-Host "Now set it back to its NORMAL value, then press Enter" | Out-Null
+    $back = Get-Snapshot
+    $changed = @($changed | Where-Object { $back[$_] -eq $before[$_] })
     if ($changed.Count -eq 0) {
-        Write-Host "No change detected - skipping this one." -ForegroundColor Yellow
-        continue
+        Write-Host "  Not found in the watch's system settings - this one stays manual." -ForegroundColor Yellow
+        $script:notFound += $name
+        return
     }
     foreach ($k in $changed) {
         $table, $key = $k.Split("|", 2)
-        Write-Host "  found: $table $key  (on=$($before[$k]) off=$($after[$k]))" -ForegroundColor Green
-        Adb shell am broadcast -a "$Pkg.ADD_TWEAK" -n $Receiver --es label $item.Label --es table $table --es key $key --es off "'$($after[$k])'" | Out-Null
-        if ($before.ContainsKey($k)) { $restore += , @($table, $key, $before[$k]) }
+        Write-Host "  found: $table $key  (normal=$($before[$k]) shabbat=$($after[$k]))" -ForegroundColor Green
+        Adb shell am broadcast -a "$Pkg.ADD_TWEAK" -n $Receiver --es label $label --es table $table --es key $key --es off "'$($after[$k])'" | Out-Null
     }
+    $script:found += $name
 }
 
-# Put the watch back the way it was; the app switches these off only during Shabbat.
-foreach ($r in $restore) { Adb shell settings put $r[0] $r[1] "'$($r[2])'" | Out-Null }
+Adb shell am broadcast -a "$Pkg.CLEAR_TWEAKS" -n $Receiver | Out-Null
 
+Write-Host ""
+Write-Host "CALIBRATION - for each setting you will switch it to the Shabbat value and back."
+Write-Host "Keep the watch awake (tap it now and then). Type 'skip' for anything your watch doesn't have."
+foreach ($item in $items) { Measure-Setting $item.Label $item.Name $item.Where }
+
+while ($true) {
+    Write-Host ""
+    $extra = Read-Host "Any OTHER setting to switch off on Shabbat? Type a short English name for it, or press Enter to finish"
+    if (-not $extra) { break }
+    $label = ($extra -replace '[^A-Za-z0-9 _-]', '').Trim()
+    if (-not $label) { $label = "extra" }
+    Measure-Setting $label $extra "wherever it is on the watch"
+}
+
+Write-Host ""
+Write-Host "Handled automatically by the app on Shabbat: $($found -join ', ')" -ForegroundColor Green
+if ($notFound.Count) {
+    Write-Host "NOT found - switch these by hand before Shabbat: $($notFound -join ', ')" -ForegroundColor Yellow
+}
 Write-Host ""
 Write-Host "Saved in the app:"
 Adb shell am broadcast -a "$Pkg.LIST" -n $Receiver
 Write-Host ""
-Write-Host "Done. Check on the watch that the settings you turned off are back ON."
-Write-Host "You can now turn Wireless debugging off; the permissions stay."
+Write-Host "Done. You can now turn Wireless debugging off; the permissions stay."

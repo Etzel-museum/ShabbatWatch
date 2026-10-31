@@ -20,7 +20,12 @@ data class Tweak(val label: String, val table: String, val key: String, val offV
 object SystemTweaks {
 
     // install.ps1 sends ASCII ids (Windows PowerShell 5.1 mangles Hebrew in scripts).
-    private val LABELS = mapOf("wrist" to "הרמת יד", "tap" to "נגיעה להערה", "palm" to "כיסוי בכף יד")
+    // Labels the user typed for extra settings are shown as-is.
+    private val LABELS = mapOf(
+        "wrist" to "הרמת יד", "tap" to "נגיעה להערה", "palm" to "כיסוי בכף יד",
+        "heart" to "דופק", "stress" to "מתח", "bp" to "לחץ דם", "spo2" to "חמצן בדם",
+        "skin" to "טמפרטורת עור", "ages" to "מדד AGEs",
+    )
 
     private fun nm(ctx: Context) = ctx.getSystemService(NotificationManager::class.java)
 

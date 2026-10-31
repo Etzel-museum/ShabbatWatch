@@ -76,7 +76,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
-            android:text="ליציאה ממצב שבת: 3 לחיצות מהירות על כפתור החזרה (התחתון).\n\nלפני שבת, פעם אחת: Samsung Health ← הגדרות ← דופק: ידני בלבד, מתח: כבוי, זיהוי אימון: כבוי."
+            android:text="ליציאה ממצב שבת: 3 לחיצות מהירות על כפתור החזרה (התחתון).\n\nהגדרות שהכיול לא מצא - לכבות ידנית לפני שבת."
             android:textColor="#909090"
             android:textSize="12sp" />
     </LinearLayout>
