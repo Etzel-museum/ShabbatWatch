@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@android:color/black"
+    android:hapticFeedbackEnabled="false"
+    android:soundEffectsEnabled="false">
+
+    <LinearLayout
+        android:id="@+id/content"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:gravity="center_horizontal"
+        android:layoutDirection="rtl"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/tvTime"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="sans-serif-light"
+            android:textColor="#C8C8C8"
+            android:textSize="54sp" />
+
+        <TextView
+            android:id="@+id/tvDate"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="#9A9A9A"
+            android:textSize="16sp" />
+
+        <TextView
+            android:id="@+id/tvParsha"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:textColor="#9A9A9A"
+            android:textSize="15sp" />
+
+        <TextView
+            android:id="@+id/tvZman"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:textColor="#B08A3A"
+            android:textSize="15sp" />
+    </LinearLayout>
+</FrameLayout>

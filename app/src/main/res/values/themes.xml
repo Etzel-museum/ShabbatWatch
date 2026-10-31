@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="AppTheme" parent="android:Theme.DeviceDefault.NoActionBar">
+        <item name="android:windowBackground">@android:color/black</item>
+    </style>
+
+    <!-- No swipe-to-dismiss: a swipe on the Shabbat screen must do nothing. -->
+    <style name="ShabbatTheme" parent="AppTheme">
+        <item name="android:windowSwipeToDismiss">false</item>
+        <item name="android:windowFullscreen">true</item>
+        <item name="android:windowAnimationStyle">@null</item>
+    </style>
+</resources>

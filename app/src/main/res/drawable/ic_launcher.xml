@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Two Shabbat candles on a night-blue disc. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="48dp"
+    android:height="48dp"
+    android:viewportWidth="48"
+    android:viewportHeight="48">
+    <path
+        android:fillColor="#1B2A4A"
+        android:pathData="M24,0A24,24 0 1,1 24,48A24,24 0 1,1 24,0Z" />
+    <path
+        android:fillColor="#F3E9D2"
+        android:pathData="M15.5,22h6v16h-6zM26.5,22h6v16h-6z" />
+    <path
+        android:fillColor="#F2B33D"
+        android:pathData="M18.5,11c2.4,3.2 3,5.6 0,8.5c-3,-2.9 -2.4,-5.3 0,-8.5zM29.5,11c2.4,3.2 3,5.6 0,8.5c-3,-2.9 -2.4,-5.3 0,-8.5z" />
+</vector>
